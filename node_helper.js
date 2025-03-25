@@ -21,12 +21,204 @@ module.exports = NodeHelper.create({
     this.calendars = {};
     this.calendarInstances = {};
     this.authServers = {};
+    this.settings = {};
+    
+    // Create storage path
+    this.storagePath = path.join(this.path, "calendars");
+    if (!fs.existsSync(this.storagePath)) {
+      fs.mkdirSync(this.storagePath, { recursive: true });
+    }
     
     // Initialize express app for the setup UI
     this.expressApp = express();
     this.expressApp.use(bodyParser.json());
     this.expressApp.use(bodyParser.urlencoded({ extended: true }));
     this.expressApp.use("/MMM-StylishCalendar", express.static(path.resolve(module.exports.path + "/public")));
+    
+    // Setup API endpoints
+    this.setupAPIRoutes();
+  },
+  
+  setupAPIRoutes: function() {
+    // Get all calendars for an instance
+    this.expressApp.get("/api/calendars/:instanceId", (req, res) => {
+      const instanceId = req.params.instanceId;
+      const calendarConfigPath = path.join(this.storagePath, `${instanceId}-calendars.json`);
+      
+      try {
+        if (fs.existsSync(calendarConfigPath)) {
+          const calendars = JSON.parse(fs.readFileSync(calendarConfigPath, "utf8"));
+          res.json({ success: true, calendars: calendars });
+        } else {
+          res.json({ success: true, calendars: [] });
+        }
+      } catch (error) {
+        console.error(`[MMM-StylishCalendar] Error loading calendars:`, error);
+        res.status(500).json({ success: false, error: "Failed to load calendars" });
+      }
+    });
+    
+    // Add a new calendar
+    this.expressApp.post("/api/calendars/:instanceId", (req, res) => {
+      const instanceId = req.params.instanceId;
+      const calendarConfig = req.body;
+      
+      if (!calendarConfig.name || !calendarConfig.url) {
+        return res.status(400).json({ success: false, error: "Missing required fields" });
+      }
+      
+      const calendarConfigPath = path.join(this.storagePath, `${instanceId}-calendars.json`);
+      
+      try {
+        let calendars = [];
+        if (fs.existsSync(calendarConfigPath)) {
+          calendars = JSON.parse(fs.readFileSync(calendarConfigPath, "utf8"));
+        }
+        
+        // Check if calendar already exists
+        const exists = calendars.some(cal => cal.url === calendarConfig.url);
+        if (exists) {
+          return res.status(409).json({ success: false, error: "Calendar with this URL already exists" });
+        }
+        
+        calendars.push(calendarConfig);
+        fs.writeFileSync(calendarConfigPath, JSON.stringify(calendars, null, 2));
+        
+        // Notify the module about the new calendar
+        this.sendSocketNotification("CALENDAR_UPDATED", {
+          instanceId: instanceId,
+          calendars: calendars
+        });
+        
+        res.json({ success: true });
+      } catch (error) {
+        console.error(`[MMM-StylishCalendar] Error saving calendar:`, error);
+        res.status(500).json({ success: false, error: "Failed to save calendar" });
+      }
+    });
+    
+    // Update an existing calendar
+    this.expressApp.put("/api/calendars/:instanceId", (req, res) => {
+      const instanceId = req.params.instanceId;
+      const updatedCalendar = req.body;
+      
+      if (!updatedCalendar.name || !updatedCalendar.url) {
+        return res.status(400).json({ success: false, error: "Missing required fields" });
+      }
+      
+      const calendarConfigPath = path.join(this.storagePath, `${instanceId}-calendars.json`);
+      
+      try {
+        if (!fs.existsSync(calendarConfigPath)) {
+          return res.status(404).json({ success: false, error: "No calendars found" });
+        }
+        
+        let calendars = JSON.parse(fs.readFileSync(calendarConfigPath, "utf8"));
+        
+        // Find the calendar to update
+        const index = calendars.findIndex(cal => cal.url === updatedCalendar.url);
+        if (index === -1) {
+          return res.status(404).json({ success: false, error: "Calendar not found" });
+        }
+        
+        // Update the calendar
+        calendars[index] = updatedCalendar;
+        fs.writeFileSync(calendarConfigPath, JSON.stringify(calendars, null, 2));
+        
+        // Notify the module about the updated calendar
+        this.sendSocketNotification("CALENDAR_UPDATED", {
+          instanceId: instanceId,
+          calendars: calendars
+        });
+        
+        res.json({ success: true });
+      } catch (error) {
+        console.error(`[MMM-StylishCalendar] Error updating calendar:`, error);
+        res.status(500).json({ success: false, error: "Failed to update calendar" });
+      }
+    });
+    
+    // Delete a calendar
+    this.expressApp.delete("/api/calendars/:instanceId/:url", (req, res) => {
+      const instanceId = req.params.instanceId;
+      const url = decodeURIComponent(req.params.url);
+      
+      const calendarConfigPath = path.join(this.storagePath, `${instanceId}-calendars.json`);
+      
+      try {
+        if (!fs.existsSync(calendarConfigPath)) {
+          return res.status(404).json({ success: false, error: "No calendars found" });
+        }
+        
+        let calendars = JSON.parse(fs.readFileSync(calendarConfigPath, "utf8"));
+        
+        // Filter out the calendar to delete
+        const newCalendars = calendars.filter(cal => cal.url !== url);
+        
+        // If nothing was removed, the calendar wasn't found
+        if (newCalendars.length === calendars.length) {
+          return res.status(404).json({ success: false, error: "Calendar not found" });
+        }
+        
+        fs.writeFileSync(calendarConfigPath, JSON.stringify(newCalendars, null, 2));
+        
+        // Notify the module about the deleted calendar
+        this.sendSocketNotification("CALENDAR_UPDATED", {
+          instanceId: instanceId,
+          calendars: newCalendars
+        });
+        
+        res.json({ success: true });
+      } catch (error) {
+        console.error(`[MMM-StylishCalendar] Error deleting calendar:`, error);
+        res.status(500).json({ success: false, error: "Failed to delete calendar" });
+      }
+    });
+    
+    // Get settings
+    this.expressApp.get("/api/settings/:instanceId", (req, res) => {
+      const instanceId = req.params.instanceId;
+      const settingsPath = path.join(this.storagePath, `${instanceId}-settings.json`);
+      
+      try {
+        if (fs.existsSync(settingsPath)) {
+          const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+          res.json({ success: true, settings: settings });
+        } else {
+          res.json({ success: true, settings: { maximumEntries: 10 } });
+        }
+      } catch (error) {
+        console.error(`[MMM-StylishCalendar] Error loading settings:`, error);
+        res.status(500).json({ success: false, error: "Failed to load settings" });
+      }
+    });
+    
+    // Save settings
+    this.expressApp.post("/api/settings/:instanceId", (req, res) => {
+      const instanceId = req.params.instanceId;
+      const settings = req.body;
+      
+      if (settings.maximumEntries === undefined) {
+        return res.status(400).json({ success: false, error: "Missing required fields" });
+      }
+      
+      const settingsPath = path.join(this.storagePath, `${instanceId}-settings.json`);
+      
+      try {
+        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+        
+        // Notify the module about the updated settings
+        this.sendSocketNotification("SETTINGS_UPDATED", {
+          instanceId: instanceId,
+          settings: settings
+        });
+        
+        res.json({ success: true });
+      } catch (error) {
+        console.error(`[MMM-StylishCalendar] Error saving settings:`, error);
+        res.status(500).json({ success: false, error: "Failed to save settings" });
+      }
+    });
   },
   
   socketNotificationReceived: function(notification, payload) {
@@ -50,6 +242,38 @@ module.exports = NodeHelper.create({
       config: config,
       calendars: []
     };
+    
+    // Try to load calendars from storage first
+    const calendarConfigPath = path.join(this.storagePath, `${instanceId}-calendars.json`);
+    if (fs.existsSync(calendarConfigPath)) {
+      try {
+        const savedCalendars = JSON.parse(fs.readFileSync(calendarConfigPath, "utf8"));
+        if (savedCalendars && savedCalendars.length > 0) {
+          // Use saved calendars instead of config calendars
+          config.calendars = savedCalendars;
+          console.log(`[MMM-StylishCalendar] Loaded ${savedCalendars.length} calendars from storage`);
+        }
+      } catch (error) {
+        console.error(`[MMM-StylishCalendar] Error loading calendars from storage:`, error);
+      }
+    }
+    
+    // Try to load settings from storage
+    const settingsPath = path.join(this.storagePath, `${instanceId}-settings.json`);
+    if (fs.existsSync(settingsPath)) {
+      try {
+        const savedSettings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+        if (savedSettings) {
+          // Apply saved settings
+          if (savedSettings.maximumEntries !== undefined) {
+            config.maximumEntries = savedSettings.maximumEntries;
+          }
+          console.log(`[MMM-StylishCalendar] Loaded settings from storage`);
+        }
+      } catch (error) {
+        console.error(`[MMM-StylishCalendar] Error loading settings from storage:`, error);
+      }
+    }
     
     if (config.calendars.length > 0) {
       this.loadCalendars(instanceId);
@@ -151,7 +375,13 @@ module.exports = NodeHelper.create({
       }
     }
     
-    return fetch(calendar.url, fetchOptions)
+    // Handle webcal protocol
+    let url = calendar.url;
+    if (url.startsWith('webcal://')) {
+      url = url.replace('webcal://', 'https://');
+    }
+    
+    return fetch(url, fetchOptions)
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -237,15 +467,16 @@ module.exports = NodeHelper.create({
   
   filterEvents: function(events, config) {
     const now = moment();
-    const future = moment().add(config.maximumDaysInFuture, "days");
+    const future = moment().add(config.maximumDaysInFuture || 365, "days");
     
-    // Filter events based on date range and max entries
-    return events
-      .filter(event => {
-        const eventStart = moment(event.startDate);
-        return eventStart.isBetween(now, future, null, "[]");
-      })
-      .slice(0, config.maximumEntries);
+    // Filter events based on date range
+    const filteredEvents = events.filter(event => {
+      const eventStart = moment(event.startDate);
+      return eventStart.isBetween(now, future, null, "[]");
+    });
+    
+    // Return events limited by maximumEntries count
+    return filteredEvents.slice(0, config.maximumEntries || 10);
   },
   
   startAuthServer: function(instanceId, config) {

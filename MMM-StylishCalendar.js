@@ -14,7 +14,6 @@ Module.register("MMM-StylishCalendar", {
     // Calendar configuration
     calendars: [],
     maximumEntries: 10,
-    maximumDaysInFuture: 90,
     displaySymbol: true,
     defaultSymbol: "calendar",
     displaySymbolIconReplacement: true,
@@ -22,6 +21,7 @@ Module.register("MMM-StylishCalendar", {
     wrapEvents: false,
     maxEventTitleLength: 30,
     maxEventLocationLength: 30,
+    allowWebcal: true,
     
     // Appearance
     animateIn: true,
@@ -136,6 +136,20 @@ Module.register("MMM-StylishCalendar", {
         this.events = payload.events;
         this.loaded = true;
         this.updateDom();
+      }
+    } else if (notification === "CALENDAR_UPDATED") {
+      if (payload.instanceId === this.instanceId) {
+        this.config.calendars = payload.calendars;
+        this.sendConfig();
+        this.updateCalendarEvents();
+      }
+    } else if (notification === "SETTINGS_UPDATED") {
+      if (payload.instanceId === this.instanceId) {
+        if (payload.settings.maximumEntries) {
+          this.config.maximumEntries = payload.settings.maximumEntries;
+        }
+        this.sendConfig();
+        this.updateCalendarEvents();
       }
     } else if (notification === "APPLE_CALENDAR_AUTH_RUNNING") {
       if (payload.instanceId === this.instanceId) {
