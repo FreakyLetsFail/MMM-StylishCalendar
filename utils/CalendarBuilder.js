@@ -96,8 +96,8 @@ class CalendarBuilder {
       title.appendChild(titleText);
       
       const dateInfo = document.createElement("div");
-      dateInfo.className = "calendar-date-info";
-      dateInfo.textContent = moment().format("dddd, MMMM Do");
+      //dateInfo.className = "calendar-date-info";
+      //dateInfo.textContent = moment().format("dddd, MMMM Do");
       
       header.appendChild(title);
       header.appendChild(dateInfo);

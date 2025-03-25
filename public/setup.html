@@ -577,7 +577,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       // Get URL parameters
       const urlParams = new URLSearchParams(window.location.search);
-      const instanceId = urlParams.get('instance') || Date.now().toString(16);
+      const instanceId = urlParams.get('instance') || "mm-stylish-calendar-top-right";
       
       // DOM Elements
       const authToggle = document.getElementById('auth-toggle');

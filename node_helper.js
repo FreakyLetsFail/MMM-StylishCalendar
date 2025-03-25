@@ -90,8 +90,28 @@ module.exports = NodeHelper.create({
       try {
         if (fs.existsSync(calendarConfigPath)) {
           const calendars = JSON.parse(fs.readFileSync(calendarConfigPath, "utf8"));
+          console.log(`[MMM-StylishCalendar] API: Returning ${calendars.length} calendars for ${instanceId}`);
           res.json({ success: true, calendars: calendars });
         } else {
+          console.log(`[MMM-StylishCalendar] API: No calendar file found for ${instanceId}, returning empty array`);
+          
+          // Check for any calendar file and use it
+          const files = fs.readdirSync(this.storagePath);
+          const calendarFiles = files.filter(file => file.endsWith('-calendars.json'));
+          
+          if (calendarFiles.length > 0) {
+            console.log(`[MMM-StylishCalendar] API: Found other calendar files: ${calendarFiles.join(', ')}`);
+            // Use the first file found
+            const firstFilePath = path.join(this.storagePath, calendarFiles[0]);
+            const otherCalendars = JSON.parse(fs.readFileSync(firstFilePath, "utf8"));
+            
+            // Copy this file to the requested instance ID
+            fs.writeFileSync(calendarConfigPath, JSON.stringify(otherCalendars, null, 2));
+            console.log(`[MMM-StylishCalendar] API: Copied ${otherCalendars.length} calendars to ${calendarConfigPath}`);
+            
+            return res.json({ success: true, calendars: otherCalendars });
+          }
+          
           res.json({ success: true, calendars: [] });
         }
       } catch (error) {
@@ -238,9 +258,14 @@ module.exports = NodeHelper.create({
       try {
         if (fs.existsSync(settingsPath)) {
           const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+          console.log(`[MMM-StylishCalendar] API: Loaded settings for ${instanceId}:`, settings);
           res.json({ success: true, settings: settings });
         } else {
-          res.json({ success: true, settings: { maximumEntries: 10 } });
+          // Create default settings file if it doesn't exist
+          const defaultSettings = { maximumEntries: 10 };
+          fs.writeFileSync(settingsPath, JSON.stringify(defaultSettings, null, 2));
+          console.log(`[MMM-StylishCalendar] API: Created default settings for ${instanceId}`);
+          res.json({ success: true, settings: defaultSettings });
         }
       } catch (error) {
         console.error(`[MMM-StylishCalendar] Error loading settings:`, error);
@@ -422,17 +447,28 @@ module.exports = NodeHelper.create({
     
     console.log(`[MMM-StylishCalendar] Getting calendar events for instance ${instanceId}`);
     
-    // Check for any calendar files specific to this instance
+    // Always check for calendar files on disk
     const calendarConfigPath = path.join(this.storagePath, `${instanceId}-calendars.json`);
     try {
       if (fs.existsSync(calendarConfigPath)) {
         const savedCalendars = JSON.parse(fs.readFileSync(calendarConfigPath, "utf8"));
         if (savedCalendars && savedCalendars.length > 0) {
           // Update config with saved calendars
+          console.log(`[MMM-StylishCalendar] Loading ${savedCalendars.length} calendars from ${calendarConfigPath}`);
+          
+          // Force config update
           instance.config.calendars = savedCalendars;
           config.calendars = savedCalendars;
-          console.log(`[MMM-StylishCalendar] Found ${savedCalendars.length} calendars for instance ${instanceId}`);
+          
+          // Debug output of calendars
+          savedCalendars.forEach(cal => {
+            console.log(`[MMM-StylishCalendar] Loaded calendar: ${cal.name} (${cal.url})`);
+          });
+        } else {
+          console.log(`[MMM-StylishCalendar] Calendar file exists but contains no calendars: ${calendarConfigPath}`);
         }
+      } else {
+        console.log(`[MMM-StylishCalendar] No calendar file found at: ${calendarConfigPath}`);
       }
     } catch (error) {
       console.error(`[MMM-StylishCalendar] Error loading calendars in getCalendarEvents:`, error);
