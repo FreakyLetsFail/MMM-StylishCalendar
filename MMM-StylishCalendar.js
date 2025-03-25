@@ -48,6 +48,7 @@ Module.register("MMM-StylishCalendar", {
     showHeader: true,
     groupByDay: true,
     dayLimit: 7,
+    showLegend: true, // Show legend with calendar icon meanings
     
     // Update intervals (seconds)
     updateInterval: 60,
@@ -139,7 +140,9 @@ Module.register("MMM-StylishCalendar", {
     return [
       "moment.js",
       this.file("vendor/vibrant.worker.min.js"),
-      this.file("utils/CalendarBuilder.js")
+      this.file("utils/CalendarBuilder.js"),
+      // Add FontAwesome for additional icons
+      "https://kit.fontawesome.com/3c3d5ef931.js"
     ];
   },
   

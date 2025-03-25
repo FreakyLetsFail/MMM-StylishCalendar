@@ -129,15 +129,22 @@
   }
   
   .event-symbol {
-    min-width: 18px;
-    height: 18px;
+    min-width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
     color: var(--event-color, var(--calendar-theme-color));
   }
   
+  .event-symbol svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  /* Hidden category text */
   .event-category {
+    display: none; /* Hide category text as requested */
     font-size: 0.8em;
     font-weight: 500;
     text-transform: capitalize;
@@ -191,7 +198,61 @@
     to { transform: translateX(0); opacity: 1; }
   }
   
-  /* Responsive adjustments */
+  /* Legend styles */
+  .calendar-legend {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    animation: fadeIn var(--calendar-transition-time);
+  }
+  
+  .legend-title {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: var(--color-text-dimmed);
+    letter-spacing: 0.02em;
+  }
+  
+  .legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 6px 10px;
+    border-radius: 6px;
+    max-width: 48%; /* Two columns on wider screens */
+  }
+  
+  .legend-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--event-color, var(--calendar-theme-color));
+  }
+  
+  .legend-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .legend-name {
+    font-size: 0.8em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+/* Responsive adjustments */
   @media screen and (max-width: 400px) {
     .calendar-event {
       flex-direction: column;
@@ -200,5 +261,9 @@
     
     .event-time {
       min-width: auto;
+    }
+    
+    .legend-item {
+      max-width: 100%; /* Full width on small screens */
     }
   }

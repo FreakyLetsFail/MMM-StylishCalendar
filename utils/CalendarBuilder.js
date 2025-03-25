@@ -64,7 +64,95 @@ class CalendarBuilder {
         container.appendChild(this.buildUpcomingView(events));
       }
       
+      // Add legend showing what each calendar icon means
+      if (config.showLegend !== false && events.length > 0) {
+        container.appendChild(this.buildCalendarLegend(events));
+      }
+      
       return container;
+    }
+    
+    // Build a legend showing all calendar icons and their names
+    buildCalendarLegend(events) {
+      // Create unique map of calendar names and symbols
+      const calendarMap = new Map();
+      
+      events.forEach(event => {
+        if (event.calendarName && event.calendarSymbol) {
+          calendarMap.set(event.calendarName, {
+            symbol: event.calendarSymbol,
+            color: event.calendarColor
+          });
+        }
+      });
+      
+      // If no calendars found, don't show legend
+      if (calendarMap.size === 0) {
+        return document.createElement("div");
+      }
+      
+      // Create legend container
+      const legendContainer = document.createElement("div");
+      legendContainer.className = "calendar-legend";
+      
+      // Add legend title
+      const legendTitle = document.createElement("div");
+      legendTitle.className = "legend-title";
+      legendTitle.textContent = this.translate("LEGEND") || "Legend";
+      legendContainer.appendChild(legendTitle);
+      
+      // Create legend items
+      const legendItems = document.createElement("div");
+      legendItems.className = "legend-items";
+      
+      // Add each calendar to the legend
+      calendarMap.forEach((details, calName) => {
+        const legendItem = document.createElement("div");
+        legendItem.className = "legend-item";
+        
+        // Add icon
+        const iconContainer = document.createElement("div");
+        iconContainer.className = "legend-icon";
+        
+        if (this.config.colorizeEvents) {
+          iconContainer.style.setProperty("--event-color", details.color || this.config.themeColor);
+        }
+        
+        // Check if this is a FontAwesome icon (fa: prefix)
+        if (details.symbol.startsWith('fa:')) {
+          // Extract FontAwesome icon name
+          const faIcon = details.symbol.substring(3);
+          const icon = document.createElement('i');
+          icon.className = faIcon;
+          iconContainer.appendChild(icon);
+        }
+        // Create SVG icon if it's a built-in icon
+        else if (this.svgs[details.symbol]) {
+          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          svg.setAttribute("viewBox", "0 0 24 24");
+          
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("d", this.svgs[details.symbol]);
+          path.setAttribute("fill", "currentColor");
+          
+          svg.appendChild(path);
+          iconContainer.appendChild(svg);
+        } else {
+          iconContainer.textContent = details.symbol || "•";
+        }
+        
+        // Add name
+        const nameContainer = document.createElement("div");
+        nameContainer.className = "legend-name";
+        nameContainer.textContent = calName;
+        
+        legendItem.appendChild(iconContainer);
+        legendItem.appendChild(nameContainer);
+        legendItems.appendChild(legendItem);
+      });
+      
+      legendContainer.appendChild(legendItems);
+      return legendContainer;
     }
     
     buildHeader() {
@@ -226,16 +314,28 @@ class CalendarBuilder {
         eventElement.appendChild(eventTime);
       }
       
-      // Add calendar symbol/icon and category
+      // Add calendar symbol/icon (but hide category text)
       if (this.config.displaySymbol) {
         const symbolContainer = document.createElement("div");
         symbolContainer.className = "event-symbol";
         
+        // Save calendar name and symbol for legend
+        event._calendarName = event.calendarName;
+        
         // Get the calendar symbol or default
         const symbol = event.calendarSymbol || this.config.defaultSymbol;
+        event._calendarSymbol = symbol;
         
-        // Use icon replacement if available
-        if (this.config.displaySymbolIconReplacement && this.svgs[symbol]) {
+        // Check if this is a FontAwesome icon (fa: prefix)
+        if (symbol.startsWith('fa:')) {
+          // Extract FontAwesome icon name
+          const faIcon = symbol.substring(3);
+          const icon = document.createElement('i');
+          icon.className = faIcon;
+          symbolContainer.appendChild(icon);
+        }
+        // Use built-in SVG icon replacement if available
+        else if (this.config.displaySymbolIconReplacement && this.svgs[symbol]) {
           const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
           svg.setAttribute("viewBox", "0 0 24 24");
           
@@ -249,13 +349,7 @@ class CalendarBuilder {
           symbolContainer.textContent = symbol;
         }
         
-        // Add category if available
-        if (event.calendarCategory) {
-          const categorySpan = document.createElement("span");
-          categorySpan.className = "event-category";
-          categorySpan.textContent = event.calendarCategory;
-          symbolContainer.appendChild(categorySpan);
-        }
+        // We don't add text categories anymore as requested
         
         eventElement.appendChild(symbolContainer);
       }

@@ -465,20 +465,38 @@
         <div class="form-group">
           <label for="calendar-symbol">Icon</label>
           <select id="calendar-symbol">
-            <option value="calendar">Calendar</option>
-            <option value="work">Work</option>
-            <option value="family">Family</option>
-            <option value="event">Event</option>
-            <option value="birthday">Birthday</option>
-            <option value="holiday">Holiday</option>
-            <option value="travel">Travel</option>
-            <option value="meeting">Meeting</option>
+            <optgroup label="Built-in Icons">
+              <option value="calendar">Calendar</option>
+              <option value="work">Work</option>
+              <option value="family">Family</option>
+              <option value="event">Event</option>
+              <option value="birthday">Birthday</option>
+              <option value="holiday">Holiday</option>
+              <option value="travel">Travel</option>
+              <option value="meeting">Meeting</option>
+            </optgroup>
+            <optgroup label="FontAwesome Icons">
+              <option value="fa:fas fa-calendar-alt">Calendar (FontAwesome)</option>
+              <option value="fa:fas fa-briefcase">Work (FontAwesome)</option>
+              <option value="fa:fas fa-users">Family (FontAwesome)</option>
+              <option value="fa:fas fa-calendar-day">Event (FontAwesome)</option>
+              <option value="fa:fas fa-birthday-cake">Birthday (FontAwesome)</option>
+              <option value="fa:fas fa-umbrella-beach">Holiday (FontAwesome)</option>
+              <option value="fa:fas fa-plane">Travel (FontAwesome)</option>
+              <option value="fa:fas fa-handshake">Meeting (FontAwesome)</option>
+              <option value="fa:fas fa-graduation-cap">Education (FontAwesome)</option>
+              <option value="fa:fas fa-heartbeat">Health (FontAwesome)</option>
+              <option value="fa:fas fa-church">Religion (FontAwesome)</option>
+              <option value="fa:fas fa-shopping-cart">Shopping (FontAwesome)</option>
+              <option value="fa:fas fa-utensils">Food (FontAwesome)</option>
+            </optgroup>
           </select>
           <div id="icon-preview" class="icon-preview">
             <svg viewBox="0 0 24 24" width="24" height="24">
               <path fill="currentColor" d="M7,2H21C22.1,2 23,2.9 23,4V20C23,21.1 22.1,22 21,22H3C1.9,22 1,21.1 1,20V8L7,2M7,4V8H3V20H21V4H7M17,14H19V17H17V14M15,14H13V17H15V14M11,14H9V17H11V14M7,14H5V17H7V14Z"></path>
             </svg>
           </div>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
         </div>
         
         <div class="form-group">
@@ -637,12 +655,20 @@
       
       // Update icon preview when changing selection
       symbolSelect.addEventListener('change', function() {
-        const iconPath = iconPaths[this.value] || iconPaths.calendar;
-        iconPreview.innerHTML = `
-          <svg viewBox="0 0 24 24" width="24" height="24">
-            <path fill="currentColor" d="${iconPath}"></path>
-          </svg>
-        `;
+        // Check if this is a FontAwesome icon
+        if (this.value.startsWith('fa:')) {
+          // Extract FontAwesome icon class
+          const faClass = this.value.substring(3);
+          iconPreview.innerHTML = `<i class="${faClass}" style="font-size: 24px;"></i>`;
+        } else {
+          // Use built-in SVG icon
+          const iconPath = iconPaths[this.value] || iconPaths.calendar;
+          iconPreview.innerHTML = `
+            <svg viewBox="0 0 24 24" width="24" height="24">
+              <path fill="currentColor" d="${iconPath}"></path>
+            </svg>
+          `;
+        }
       });
       
       // Toggle authentication fields
@@ -965,14 +991,31 @@
           <div class="form-group">
             <label>Icon</label>
             <select name="edit-symbol">
-              <option value="calendar" ${(calendar.symbol === 'calendar' || !calendar.symbol) ? 'selected' : ''}>Calendar</option>
-              <option value="work" ${calendar.symbol === 'work' ? 'selected' : ''}>Work</option>
-              <option value="family" ${calendar.symbol === 'family' ? 'selected' : ''}>Family</option>
-              <option value="event" ${calendar.symbol === 'event' ? 'selected' : ''}>Event</option>
-              <option value="birthday" ${calendar.symbol === 'birthday' ? 'selected' : ''}>Birthday</option>
-              <option value="holiday" ${calendar.symbol === 'holiday' ? 'selected' : ''}>Holiday</option>
-              <option value="travel" ${calendar.symbol === 'travel' ? 'selected' : ''}>Travel</option>
-              <option value="meeting" ${calendar.symbol === 'meeting' ? 'selected' : ''}>Meeting</option>
+              <optgroup label="Built-in Icons">
+                <option value="calendar" ${(calendar.symbol === 'calendar' || !calendar.symbol) ? 'selected' : ''}>Calendar</option>
+                <option value="work" ${calendar.symbol === 'work' ? 'selected' : ''}>Work</option>
+                <option value="family" ${calendar.symbol === 'family' ? 'selected' : ''}>Family</option>
+                <option value="event" ${calendar.symbol === 'event' ? 'selected' : ''}>Event</option>
+                <option value="birthday" ${calendar.symbol === 'birthday' ? 'selected' : ''}>Birthday</option>
+                <option value="holiday" ${calendar.symbol === 'holiday' ? 'selected' : ''}>Holiday</option>
+                <option value="travel" ${calendar.symbol === 'travel' ? 'selected' : ''}>Travel</option>
+                <option value="meeting" ${calendar.symbol === 'meeting' ? 'selected' : ''}>Meeting</option>
+              </optgroup>
+              <optgroup label="FontAwesome Icons">
+                <option value="fa:fas fa-calendar-alt" ${calendar.symbol === 'fa:fas fa-calendar-alt' ? 'selected' : ''}>Calendar (FontAwesome)</option>
+                <option value="fa:fas fa-briefcase" ${calendar.symbol === 'fa:fas fa-briefcase' ? 'selected' : ''}>Work (FontAwesome)</option>
+                <option value="fa:fas fa-users" ${calendar.symbol === 'fa:fas fa-users' ? 'selected' : ''}>Family (FontAwesome)</option>
+                <option value="fa:fas fa-calendar-day" ${calendar.symbol === 'fa:fas fa-calendar-day' ? 'selected' : ''}>Event (FontAwesome)</option>
+                <option value="fa:fas fa-birthday-cake" ${calendar.symbol === 'fa:fas fa-birthday-cake' ? 'selected' : ''}>Birthday (FontAwesome)</option>
+                <option value="fa:fas fa-umbrella-beach" ${calendar.symbol === 'fa:fas fa-umbrella-beach' ? 'selected' : ''}>Holiday (FontAwesome)</option>
+                <option value="fa:fas fa-plane" ${calendar.symbol === 'fa:fas fa-plane' ? 'selected' : ''}>Travel (FontAwesome)</option>
+                <option value="fa:fas fa-handshake" ${calendar.symbol === 'fa:fas fa-handshake' ? 'selected' : ''}>Meeting (FontAwesome)</option>
+                <option value="fa:fas fa-graduation-cap" ${calendar.symbol === 'fa:fas fa-graduation-cap' ? 'selected' : ''}>Education (FontAwesome)</option>
+                <option value="fa:fas fa-heartbeat" ${calendar.symbol === 'fa:fas fa-heartbeat' ? 'selected' : ''}>Health (FontAwesome)</option>
+                <option value="fa:fas fa-church" ${calendar.symbol === 'fa:fas fa-church' ? 'selected' : ''}>Religion (FontAwesome)</option>
+                <option value="fa:fas fa-shopping-cart" ${calendar.symbol === 'fa:fas fa-shopping-cart' ? 'selected' : ''}>Shopping (FontAwesome)</option>
+                <option value="fa:fas fa-utensils" ${calendar.symbol === 'fa:fas fa-utensils' ? 'selected' : ''}>Food (FontAwesome)</option>
+              </optgroup>
             </select>
           </div>
           
