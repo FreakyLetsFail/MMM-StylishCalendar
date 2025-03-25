@@ -293,10 +293,18 @@ module.exports = NodeHelper.create({
   
   loadCalendars: function(instanceId) {
     const instance = this.calendarInstances[instanceId];
-    if (!instance) return;
+    if (!instance) {
+      console.error(`[MMM-StylishCalendar] Instance ${instanceId} not found`);
+      return;
+    }
     
     // Log the calendars we're loading
     console.log(`[MMM-StylishCalendar] Loading ${instance.config.calendars.length} calendars for instance ${instanceId}`);
+    console.log(`[MMM-StylishCalendar] Calendars in config: ${JSON.stringify(instance.config.calendars)}`);
+    
+    if (!instance.config.calendars || instance.config.calendars.length === 0) {
+      console.log(`[MMM-StylishCalendar] No calendars found in config for instance ${instanceId}`);
+    }
     
     instance.config.calendars.forEach(calendar => {
       if (!this.calendars[calendar.url]) {
@@ -320,7 +328,12 @@ module.exports = NodeHelper.create({
   
   getCalendarEvents: function(instanceId, config) {
     const instance = this.calendarInstances[instanceId];
-    if (!instance) return;
+    if (!instance) {
+      console.error(`[MMM-StylishCalendar] Instance ${instanceId} not found in getCalendarEvents`);
+      return;
+    }
+    
+    console.log(`[MMM-StylishCalendar] Getting calendar events for instance ${instanceId}`);
     
     // Reload calendars in case they changed
     this.loadCalendars(instanceId);
@@ -364,6 +377,8 @@ module.exports = NodeHelper.create({
         
         // Filter events based on config
         allEvents = this.filterEvents(allEvents, config);
+        
+        console.log(`[MMM-StylishCalendar] Sending ${allEvents.length} events to instance ${instanceId}`);
         
         this.sendSocketNotification("CALENDAR_EVENTS", {
           instanceId: instanceId,

@@ -113,6 +113,7 @@ Module.register("MMM-StylishCalendar", {
       // Show loading message
       wrapper.innerHTML = this.translate("LOADING");
       wrapper.className = "MMM-StylishCalendar-wrapper dimmed";
+      console.log(`[${this.name}] Calendar loading - awaiting events from backend`);
       return wrapper;
     }
     
@@ -120,7 +121,15 @@ Module.register("MMM-StylishCalendar", {
       // No events to display
       wrapper.innerHTML = this.translate("NO_EVENTS");
       wrapper.className = "MMM-StylishCalendar-wrapper dimmed";
+      console.log(`[${this.name}] No events to display - events array is empty`);
       return wrapper;
+    }
+    
+    console.log(`[${this.name}] Rendering ${this.events.length} events`);
+    
+    // If calendars is empty, there might be an issue with config
+    if (!this.config.calendars || this.config.calendars.length === 0) {
+      console.log(`[${this.name}] Warning: No calendars in config, but ${this.events.length} events loaded`);
     }
     
     // Build calendar based on selected mode
