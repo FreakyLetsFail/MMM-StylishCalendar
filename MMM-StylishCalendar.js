@@ -78,6 +78,24 @@ Module.register("MMM-StylishCalendar", {
     // Load calendars from config if provided
     if (this.config.calendars && this.config.calendars.length === 0) {
       console.log(`[${this.name}] No calendars in config, checking for added calendars via setup UI`);
+      
+      // Try to load hardcoded calendar for instance ID if it exists
+      try {
+        // This is a temporary fix - we hard-code a known calendar
+        this.config.calendars = [
+          {
+            name: "Arbeit",
+            url: "webcal://p110-caldav.icloud.com/published/2/MTExMjU1Nzg2NTIxMTEyNc0NpoBBzDB_3O-5fAIlGT6Z5NrmBEbGyvdzH9yWg1_kjMDXfdmGQO9dQAEb_vXI_HhZbCSdtoh-sklWvTgvl0c",
+            symbol: "calendar",
+            color: "#ca5010",
+            category: "work",
+            type: "webcal"
+          }
+        ];
+        console.log(`[${this.name}] Added hardcoded calendar for testing`);
+      } catch (e) {
+        console.error(`[${this.name}] Error adding hardcoded calendar:`, e);
+      }
     }
     
     // Send credentials to backend and start update cycle

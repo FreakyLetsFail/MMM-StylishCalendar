@@ -126,6 +126,18 @@ module.exports = NodeHelper.create({
         calendars.push(calendarConfig);
         fs.writeFileSync(calendarConfigPath, JSON.stringify(calendars, null, 2));
         
+        // Update all instances with this calendar
+        Object.keys(this.calendarInstances).forEach(id => {
+          // Add to all instances that match the current ID pattern
+          if (id === instanceId || id.includes('calendar')) {
+            console.log(`[MMM-StylishCalendar] Adding calendar to instance: ${id}`);
+            if (!this.calendarInstances[id].config.calendars) {
+              this.calendarInstances[id].config.calendars = [];
+            }
+            this.calendarInstances[id].config.calendars.push(calendarConfig);
+          }
+        });
+        
         // Notify the module about the new calendar
         this.sendSocketNotification("CALENDAR_UPDATED", {
           instanceId: instanceId,
