@@ -81,7 +81,8 @@ class CalendarBuilder {
         if (event.calendarName && event.calendarSymbol) {
           calendarMap.set(event.calendarName, {
             symbol: event.calendarSymbol,
-            color: event.calendarColor
+            color: event.calendarColor,
+            person: event.person
           });
         }
       });
@@ -139,6 +140,22 @@ class CalendarBuilder {
           iconContainer.appendChild(svg);
         } else {
           iconContainer.textContent = details.symbol || "•";
+        }
+        
+        // Add person icon if available
+        if (details.person) {
+          const personIcon = document.createElement("span");
+          personIcon.className = "legend-person";
+          
+          if (details.person === "justus") {
+            personIcon.innerHTML = '<i class="fas fa-male"></i>';
+          } else if (details.person === "marie") {
+            personIcon.innerHTML = '<i class="fas fa-female"></i>';
+          } else if (details.person === "gemeinsam") {
+            personIcon.innerHTML = '<i class="fas fa-male"></i><i class="fas fa-female"></i>';
+          }
+          
+          iconContainer.appendChild(personIcon);
         }
         
         // Add name
@@ -360,36 +377,9 @@ class CalendarBuilder {
         eventElement.appendChild(eventTime);
       }
       
-    // Helper method to create icon elements based on icon type
-    createIcon: function(symbol, color) {
-      // Check if this is a FontAwesome icon (fa: prefix)
-      if (symbol.startsWith('fa:')) {
-        // Extract FontAwesome icon name
-        const faIcon = symbol.substring(3);
-        const icon = document.createElement('i');
-        icon.className = faIcon;
-        if (color) {
-          icon.style.color = color;
-        }
-        return icon;
-      }
-      // Use built-in SVG icon replacement if available
-      else if (this.svgs[symbol]) {
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("viewBox", "0 0 24 24");
-        
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", this.svgs[symbol]);
-        path.setAttribute("fill", "currentColor");
-        
-        svg.appendChild(path);
-        return svg;
-      } else {
-        // Default text fallback
-        const span = document.createElement('span');
-        span.textContent = symbol || "•";
-        return span;
-      }
+      // Create content wrapper
+      const contentWrapper = document.createElement("div");
+      contentWrapper.className = "event-content";
       
       // Add event title
       const title = document.createElement("div");
@@ -467,6 +457,38 @@ class CalendarBuilder {
       return container;
     }
     
+    // Helper method to create icon elements based on icon type
+    createIcon(symbol, color) {
+      // Check if this is a FontAwesome icon (fa: prefix)
+      if (symbol.startsWith('fa:')) {
+        // Extract FontAwesome icon name
+        const faIcon = symbol.substring(3);
+        const icon = document.createElement('i');
+        icon.className = faIcon;
+        if (color) {
+          icon.style.color = color;
+        }
+        return icon;
+      }
+      // Use built-in SVG icon replacement if available
+      else if (this.svgs[symbol]) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", this.svgs[symbol]);
+        path.setAttribute("fill", "currentColor");
+        
+        svg.appendChild(path);
+        return svg;
+      } else {
+        // Default text fallback
+        const span = document.createElement('span');
+        span.textContent = symbol || "•";
+        return span;
+      }
+    }
+    
     // Helper methods
     groupEventsByDay(events) {
       const eventsByDay = {};
@@ -492,4 +514,4 @@ class CalendarBuilder {
       }
       return hash;
     }
-  }
+}

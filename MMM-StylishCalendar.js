@@ -140,9 +140,14 @@ Module.register("MMM-StylishCalendar", {
     return [
       "moment.js",
       this.file("vendor/vibrant.worker.min.js"),
-      this.file("utils/CalendarBuilder.js"),
-      // Add FontAwesome for additional icons
-      "https://kit.fontawesome.com/3c3d5ef931.js"
+      this.file("utils/CalendarBuilder.js")
+    ];
+  },
+  
+  getStyles: function() {
+    return [
+      this.file("css/MMM-StylishCalendar.css"),
+      "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
     ];
   },
   
