@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MMM-StylishCalendar Setup</title>
+  <style>
+    :root {
+      --theme-color: #ca5010;
+      --theme-color-light: #eb7c42;
+      --theme-color-dark: #9a3d0c;
+      --bg-color: #121212;
+      --surface-color: #1e1e1e;
+      --text-color: #ffffff;
+      --text-color-dimmed: #aaaaaa;
+      --border-radius: 8px;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.5;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 30px;
+      background-color: var(--surface-color);
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .logo {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: var(--theme-color);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .logo svg {
+      width: 30px;
+      height: 30px;
+    }
+    
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+      color: var(--text-color);
+    }
+    
+    p {
+      color: var(--text-color-dimmed);
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--border-radius);
+      background-color: rgba(0, 0, 0, 0.2);
+      color: var(--text-color);
+      font-size: 1em;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--theme-color);
+    }
+    
+    .auth-toggle {
+      margin-top: 20px;
+      background: none;
+      border: none;
+      color: var(--theme-color);
+      font-size: 0.9em;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+    }
+    
+    .auth-fields {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: var(--border-radius);
+      border-left: 3px solid var(--theme-color);
+    }
+    
+    .button {
+      background-color: var(--theme-color);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1em;
+      font-weight: 500;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    
+    .button:hover {
+      background-color: var(--theme-color-light);
+    }
+    
+    .button:active {
+      background-color: var(--theme-color-dark);
+    }
+    
+    .form-footer {
+      margin-top: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .help-text {
+      font-size: 0.9em;
+      color: var(--text-color-dimmed);
+    }
+    
+    .success-message, .error-message {
+      padding: 15px;
+      border-radius: var(--border-radius);
+      margin-top: 20px;
+      display: none;
+    }
+    
+    .success-message {
+      background-color: rgba(46, 204, 113, 0.2);
+      border-left: 3px solid #2ecc71;
+    }
+    
+    .error-message {
+      background-color: rgba(231, 76, 60, 0.2);
+      border-left: 3px solid #e74c3c;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .icon-preview {
+      margin-top: 10px;
+      color: var(--theme-color);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <svg viewBox="0 0 24 24">
+          <path fill="currentColor" d="M7,2H21C22.1,2 23,2.9 23,4V20C23,21.1 22.1,22 21,22H3C1.9,22 1,21.1 1,20V8L7,2M7,4V8H3V20H21V4H7M17,14H19V17H17V14M15,14H13V17H15V14M11,14H9V17H11V14M7,14H5V17H7V14Z"></path>
+        </svg>
+        <span>MMM-StylishCalendar</span>
+      </div>
+      <h1>Calendar Setup</h1>
+      <p>Configure your Apple or iCloud calendar to display in your Magic Mirror</p>
+    </div>
+    
+    <form id="calendar-form">
+      <div class="form-group">
+        <label for="calendar-name">Calendar Name</label>
+        <input type="text" id="calendar-name" placeholder="Work Calendar" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="calendar-category">Calendar Category</label>
+        <select id="calendar-category">
+          <option value="default">Default</option>
+          <option value="work">Work</option>
+          <option value="family">Family</option>
+          <option value="personal">Personal</option>
+          <option value="holiday">Holiday</option>
+          <option value="birthday">Birthday</option>
+          <option value="travel">Travel</option>
+          <option value="meeting">Meeting</option>
+          <option value="custom">Custom...</option>
+        </select>
+      </div>
+      
+      <div class="form-group hidden" id="custom-category-group">
+        <label for="custom-category">Custom Category Name</label>
+        <input type="text" id="custom-category" placeholder="Sports">
+      </div>
+      
+      <div class="form-group">
+        <label for="calendar-symbol">Calendar Icon</label>
+        <select id="calendar-symbol">
+          <option value="calendar">Calendar</option>
+          <option value="work">Work</option>
+          <option value="family">Family</option>
+          <option value="event">Event</option>
+          <option value="birthday">Birthday</option>
+          <option value="holiday">Holiday</option>
+          <option value="travel">Travel</option>
+          <option value="meeting">Meeting</option>
+        </select>
+        <div class="icon-preview" id="icon-preview">
+          <svg viewBox="0 0 24 24" width="24" height="24">
+            <path fill="currentColor" d="M7,2H21C22.1,2 23,2.9 23,4V20C23,21.1 22.1,22 21,22H3C1.9,22 1,21.1 1,20V8L7,2M7,4V8H3V20H21V4H7M17,14H19V17H17V14M15,14H13V17H15V14M11,14H9V17H11V14M7,14H5V17H7V14Z"></path>
+          </svg>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="calendar-color">Calendar Color</label>
+        <input type="color" id="calendar-color" value="#ca5010">
+      </div>
+      
+      <div class="form-group">
+        <label for="calendar-url">Calendar URL (iCal format)</label>
+        <input type="url" id="calendar-url" placeholder="https://p12-caldav.icloud.com/123456/calendars/work" required>
+        <p class="help-text">For Apple/iCloud calendars, go to Calendar settings, select the calendar, and find the "Public Calendar URL"</p>
+      </div>
+      
+      <button type="button" class="auth-toggle" id="auth-toggle">+ Add authentication (if your calendar requires it)</button>
+      
+      <div class="auth-fields hidden" id="auth-fields">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" placeholder="your.email@example.com">
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Your calendar password or app-specific password">
+        </div>
+      </div>
+      
+      <div class="form-footer">
+        <p class="help-text">After adding a calendar, you may need to restart your MagicMirror</p>
+        <button type="submit" class="button">Add Calendar</button>
+      </div>
+      
+      <div class="success-message" id="success-message">
+        Calendar added successfully! You can close this window or add another calendar.
+      </div>
+      
+      <div class="error-message" id="error-message">
+        There was an error adding your calendar. Please check your details and try again.
+      </div>
+    </form>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const authToggle = document.getElementById('auth-toggle');
+      const authFields = document.getElementById('auth-fields');
+      const form = document.getElementById('calendar-form');
+      const successMessage = document.getElementById('success-message');
+      const errorMessage = document.getElementById('error-message');
+      const categorySelect = document.getElementById('calendar-category');
+      const customCategoryGroup = document.getElementById('custom-category-group');
+      const symbolSelect = document.getElementById('calendar-symbol');
+      const iconPreview = document.getElementById('icon-preview');
+      
+      // SVG icon paths for preview
+      const iconPaths = {
+        calendar: "M7,2H21C22.1,2 23,2.9 23,4V20C23,21.1 22.1,22 21,22H3C1.9,22 1,21.1 1,20V8L7,2M7,4V8H3V20H21V4H7M17,14H19V17H17V14M15,14H13V17H15V14M11,14H9V17H11V14M7,14H5V17H7V14Z",
+        work: "M10,2H14A2,2 0 0,1 16,4V6H20A2,2 0 0,1 22,8V19A2,2 0 0,1 20,21H4C2.89,21 2,20.1 2,19V8C2,6.89 2.89,6 4,6H8V4C8,2.89 8.89,2 10,2M14,6V4H10V6H14Z",
+        family: "M12,5.5A3.5,3.5 0 0,1 15.5,9A3.5,3.5 0 0,1 12,12.5A3.5,3.5 0 0,1 8.5,9A3.5,3.5 0 0,1 12,5.5M5,8C5.56,8 6.08,8.15 6.53,8.42C6.38,9.85 6.8,11.27 7.66,12.38C7.16,13.34 6.16,14 5,14A3,3 0 0,1 2,11A3,3 0 0,1 5,8M19,8A3,3 0 0,1 22,11A3,3 0 0,1 19,14C17.84,14 16.84,13.34 16.34,12.38C17.2,11.27 17.62,9.85 17.47,8.42C17.92,8.15 18.44,8 19,8M5.5,18.25C5.5,16.18 8.41,14.5 12,14.5C15.59,14.5 18.5,16.18 18.5,18.25V20H5.5V18.25M0,20V18.5C0,17.11 1.89,15.94 4.45,15.6C3.86,16.28 3.5,17.22 3.5,18.25V20H0M24,20H20.5V18.25C20.5,17.22 20.14,16.28 19.55,15.6C22.11,15.94 24,17.11 24,18.5V20Z",
+        event: "M16,13C15.71,13 15.38,13.03 15.03,13.05C16.19,13.89 17,15 17,16.5V19H23V16.5C23,14.17 18.33,13 16,13M8,13C5.67,13 1,14.17 1,16.5V19H15V16.5C15,14.17 10.33,13 8,13M8,11A3,3 0 0,0 11,8A3,3 0 0,0 8,5A3,3 0 0,0 5,8A3,3 0 0,0 8,11M16,11A3,3 0 0,0 19,8A3,3 0 0,0 16,5A3,3 0 0,0 13,8A3,3 0 0,0 16,11Z",
+        birthday: "M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z",
+        holiday: "M8,17.85C8,19.04 7.11,20 6,20C4.89,20 4,19.04 4,17.85C4,16.42 6,14 6,14C6,14 8,16.42 8,17.85M16.46,12V10.54L8.46,5.54L7.04,7.46L13.54,11.46H3V13.46H13.54L7.04,17.46L8.46,19.38L16.46,14.38V12.92L18.04,14V10L16.46,12Z",
+        travel: "M2.5,19H21.5V21H2.5V19M22.07,9.64C21.86,8.84 21.03,8.36 20.23,8.58L14.92,10L8,7.67L3.8,9.35L5.8,13.13L8.97,12.11L10.93,12.95L2.45,16.16L3.22,18.08L13.47,14.13L17.5,18.35L19,17.66L15.56,12.26L20.5,10.95C21.3,10.74 21.77,9.9 21.56,9.11L22.07,9.64Z",
+        meeting: "M17,12V3A1,1 0 0,0 16,2H3A1,1 0 0,0 2,3V17L6,13H16A1,1 0 0,0 17,12M21,6H19V15H6V17A1,1 0 0,0 7,18H18L22,22V7A1,1 0 0,0 21,6Z"
+      };
+      
+      // Show custom category field when custom is selected
+      categorySelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+          customCategoryGroup.classList.remove('hidden');
+        } else {
+          customCategoryGroup.classList.add('hidden');
+        }
+      });
+      
+      // Update icon preview when changing selection
+      symbolSelect.addEventListener('change', function() {
+        const iconPath = iconPaths[this.value] || iconPaths.calendar;
+        iconPreview.innerHTML = `
+          <svg viewBox="0 0 24 24" width="24" height="24">
+            <path fill="currentColor" d="${iconPath}"></path>
+          </svg>
+        `;
+      });
+      
+      // Toggle authentication fields
+      authToggle.addEventListener('click', function() {
+        authFields.classList.toggle('hidden');
+        authToggle.textContent = authFields.classList.contains('hidden') 
+          ? '+ Add authentication (if your calendar requires it)'
+          : '- Hide authentication options';
+      });
+      
+      // Form submission
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const calendarName = document.getElementById('calendar-name').value;
+        const calendarUrl = document.getElementById('calendar-url').value;
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const calendarCategory = document.getElementById('calendar-category').value;
+        const customCategory = document.getElementById('custom-category').value;
+        const calendarSymbol = document.getElementById('calendar-symbol').value;
+        const calendarColor = document.getElementById('calendar-color').value;
+        
+        // Determine final category value
+        const finalCategory = calendarCategory === 'custom' ? customCategory : calendarCategory;
+        
+        // Prepare data
+        const data = {
+          name: calendarName,
+          url: calendarUrl,
+          category: finalCategory,
+          symbol: calendarSymbol,
+          color: calendarColor
+        };
+        
+        // Add authentication if provided
+        if (username && password) {
+          data.username = username;
+          data.password = password;
+        }
+        
+        // Send to API
+        fetch('/api/apple-calendar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Show success message
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+            
+            // Reset form
+            form.reset();
+            authFields.classList.add('hidden');
+            customCategoryGroup.classList.add('hidden');
+            authToggle.textContent = '+ Add authentication (if your calendar requires it)';
+            
+            // Reset icon preview
+            iconPreview.innerHTML = `
+              <svg viewBox="0 0 24 24" width="24" height="24">
+                <path fill="currentColor" d="${iconPaths.calendar}"></path>
+              </svg>
+            `;
+            
+            // Hide success message after 5 seconds
+            setTimeout(() => {
+              successMessage.style.display = 'none';
+            }, 5000);
+          } else {
+            // Show error message
+            errorMessage.textContent = data.error || 'There was an error adding your calendar. Please check your details and try again.';
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+          }
+        })
+        .catch(error => {
+          // Show error message
+          errorMessage.textContent = 'Connection error. Please try again later.';
+          errorMessage.style.display = 'block';
+          successMessage.style.display = 'none';
+          console.error('Error:', error);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
