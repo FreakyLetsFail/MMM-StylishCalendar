@@ -43,20 +43,33 @@ Dieses Modul ist ein stilvolles, minimalistisches Kalendermodul für MagicMirror
 
 Sobald das Modul installiert ist und dein MagicMirror läuft:
 
-1. Öffne einen Browser und gehe zu `http://DEINE-MIRROR-IP:8200/auth/apple-calendar`
-   (Wenn dein Mirror lokal läuft, kannst du auch `http://localhost:8200/auth/apple-calendar` verwenden)
+1. Öffne einen Browser und gehe zu `http://DEINE-MIRROR-IP:8080/MMM-StylishCalendar/setup`
+   (Wenn dein Mirror lokal läuft, kannst du auch `http://localhost:8080/MMM-StylishCalendar/setup` verwenden)
 
-2. Im Setup-Assistenten kannst du:
+2. Alternativ kannst du im Modulverzeichnis folgenden Befehl ausführen, der dir den Link anzeigt:
+   ```bash
+   npm run setup
+   ```
+
+3. Im Setup-Assistenten kannst du:
    - Einen Namen für deinen Kalender eingeben
    - Eine Kategorie auswählen (Arbeit, Familie, Persönlich, usw.)
    - Ein Symbol/Icon für den Kalender wählen
    - Eine Farbe für den Kalender festlegen
-   - Die iCal/WebCal URL deines Apple Kalenders eingeben
+   - Die iCal/WebCal URL deines Kalenders eingeben (unterstützt nun auch webcal://-URLs)
    - Optional Authentifizierungsdaten hinzufügen, falls dein Kalender passwortgeschützt ist
 
-3. Klicke auf "Kalender hinzufügen". Der Kalender wird automatisch zu deinem MagicMirror hinzugefügt.
+4. Klicke auf "Kalender hinzufügen". Der Kalender wird automatisch zu deinem MagicMirror hinzugefügt.
 
-4. Wiederhole den Vorgang für alle Kalender, die du hinzufügen möchtest.
+5. Im Tab "Kalender verwalten" kannst du:
+   - Die hinzugefügten Kalender anzeigen
+   - Die kompletten Kalender-URLs sehen
+   - Kalender bearbeiten oder löschen
+
+6. Im Tab "Einstellungen" kannst du:
+   - Die maximale Anzahl der anzuzeigenden Einträge festlegen (anstatt der Anzahl Tage)
+
+7. Wiederhole den Vorgang für alle Kalender, die du hinzufügen möchtest.
 
 ## Wie du die iCal/WebCal URL deines Apple Kalenders findest:
 
@@ -84,9 +97,9 @@ Du kannst das Modul über folgende Konfigurationsoptionen in der `config.js` anp
     config: {
         // Hauptkonfiguration
         maximumEntries: 10,               // Maximale Anzahl anzuzeigender Termine
-        maximumDaysInFuture: 90,          // Wie viele Tage in die Zukunft gesucht wird
         mode: "upcoming",                 // Anzeigemodus: "upcoming", "month", "week", "day"
-        dayLimit: 7,                      // Maximale Anzahl anzuzeigender Tage
+        dayLimit: 7,                      // Maximale Anzahl anzuzeigender Tage 
+        allowWebcal: true,                // Unterstützung für webcal:// URLs
         
         // Visuelle Anpassungen
         themeColor: "#ca5010",            // Hauptakzentfarbe

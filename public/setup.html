@@ -691,7 +691,7 @@
         settings.maximumEntries = parseInt(maxEntries.value);
         
         // Save settings via API here
-        fetch(`/api/settings/${instanceId}`, {
+        fetch(`/MMM-StylishCalendar/api/settings/${instanceId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -769,7 +769,7 @@
         }
         
         // Send to API
-        fetch(`/api/calendars/${instanceId}`, {
+        fetch(`/MMM-StylishCalendar/api/calendars/${instanceId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -825,7 +825,7 @@
         const items = calendarList.querySelectorAll('.calendar-item');
         items.forEach(item => item.remove());
         
-        fetch(`/api/calendars/${instanceId}`)
+        fetch(`/MMM-StylishCalendar/api/calendars/${instanceId}`)
           .then(response => response.json())
           .then(data => {
             loadingCalendars.style.display = 'none';
@@ -1026,7 +1026,7 @@
       function deleteCalendar(url) {
         const encodedUrl = encodeURIComponent(url);
         
-        fetch(`/api/calendars/${instanceId}/${encodedUrl}`, {
+        fetch(`/MMM-StylishCalendar/api/calendars/${instanceId}/${encodedUrl}`, {
           method: 'DELETE'
         })
           .then(response => response.json())
@@ -1054,7 +1054,7 @@
       
       // Update calendar function
       function updateCalendar(calendarData, itemElement) {
-        fetch(`/api/calendars/${instanceId}`, {
+        fetch(`/MMM-StylishCalendar/api/calendars/${instanceId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -1080,7 +1080,7 @@
       }
       
       // Initialize by loading settings
-      fetch(`/api/settings/${instanceId}`)
+      fetch(`/MMM-StylishCalendar/api/settings/${instanceId}`)
         .then(response => response.json())
         .then(data => {
           if (data.success && data.settings) {

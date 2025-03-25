@@ -1,34 +1,37 @@
 {
-    "name": "mmm-stylish-calendar",
-    "version": "1.0.0",
-    "description": "A stylish, minimalist calendar module for MagicMirror² with Apple Calendar integration",
-    "main": "MMM-StylishCalendar.js",
-    "repository": {
-      "type": "git",
-      "url": "git+https://github.com/yourusername/MMM-StylishCalendar.git"
-    },
-    "keywords": [
-      "MagicMirror",
-      "calendar",
-      "apple calendar",
-      "ical",
-      "schedule"
-    ],
-    "author": {
-      "name": "Your Name",
-      "email": "your.email@example.com",
-      "url": "https://yourwebsite.com"
-    },
-    "license": "MIT",
-    "bugs": {
-      "url": "https://github.com/yourusername/MMM-StylishCalendar/issues"
-    },
-    "homepage": "https://github.com/yourusername/MMM-StylishCalendar#readme",
-    "dependencies": {
-      "express": "^4.17.1",
-      "body-parser": "^1.19.0",
-      "node-ical": "^0.15.1",
-      "moment": "^2.29.1",
-      "node-fetch": "^2.6.7"
-    }
+  "name": "mmm-stylish-calendar",
+  "version": "1.0.0",
+  "description": "A stylish, minimalist calendar module for MagicMirror² with Apple Calendar integration",
+  "main": "MMM-StylishCalendar.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/MMM-StylishCalendar.git"
+  },
+  "keywords": [
+    "MagicMirror",
+    "calendar",
+    "apple calendar",
+    "ical",
+    "schedule"
+  ],
+  "author": {
+    "name": "Your Name",
+    "email": "your.email@example.com",
+    "url": "https://yourwebsite.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/MMM-StylishCalendar/issues"
+  },
+  "homepage": "https://github.com/yourusername/MMM-StylishCalendar#readme",
+  "scripts": {
+    "setup": "echo 'Open browser at http://localhost:8080/MMM-StylishCalendar/setup'"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "body-parser": "^1.19.0",
+    "node-ical": "^0.15.1",
+    "moment": "^2.29.1",
+    "node-fetch": "^2.6.7"
   }
+}

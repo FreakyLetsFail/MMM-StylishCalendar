@@ -37,11 +37,21 @@ module.exports = NodeHelper.create({
     
     // Setup API endpoints
     this.setupAPIRoutes();
+    
+    // Log setup information
+    console.log(`[MMM-StylishCalendar] Storage path: ${this.storagePath}`);
+    console.log(`[MMM-StylishCalendar] Setup UI available at: /MMM-StylishCalendar/setup.html`);
   },
   
   setupAPIRoutes: function() {
+    // Setup route for the setup UI
+    this.expressApp.get("/MMM-StylishCalendar/setup", (req, res) => {
+      res.sendFile(path.join(this.path, "public", "setup.html"));
+    });
+    
+    // ==== Calendar API endpoints ====
     // Get all calendars for an instance
-    this.expressApp.get("/api/calendars/:instanceId", (req, res) => {
+    this.expressApp.get("/MMM-StylishCalendar/api/calendars/:instanceId", (req, res) => {
       const instanceId = req.params.instanceId;
       const calendarConfigPath = path.join(this.storagePath, `${instanceId}-calendars.json`);
       
@@ -59,7 +69,7 @@ module.exports = NodeHelper.create({
     });
     
     // Add a new calendar
-    this.expressApp.post("/api/calendars/:instanceId", (req, res) => {
+    this.expressApp.post("/MMM-StylishCalendar/api/calendars/:instanceId", (req, res) => {
       const instanceId = req.params.instanceId;
       const calendarConfig = req.body;
       
@@ -90,6 +100,7 @@ module.exports = NodeHelper.create({
           calendars: calendars
         });
         
+        console.log(`[MMM-StylishCalendar] Calendar added: ${calendarConfig.name} (${calendarConfig.url})`);
         res.json({ success: true });
       } catch (error) {
         console.error(`[MMM-StylishCalendar] Error saving calendar:`, error);
@@ -98,7 +109,7 @@ module.exports = NodeHelper.create({
     });
     
     // Update an existing calendar
-    this.expressApp.put("/api/calendars/:instanceId", (req, res) => {
+    this.expressApp.put("/MMM-StylishCalendar/api/calendars/:instanceId", (req, res) => {
       const instanceId = req.params.instanceId;
       const updatedCalendar = req.body;
       
@@ -139,7 +150,7 @@ module.exports = NodeHelper.create({
     });
     
     // Delete a calendar
-    this.expressApp.delete("/api/calendars/:instanceId/:url", (req, res) => {
+    this.expressApp.delete("/MMM-StylishCalendar/api/calendars/:instanceId/:url", (req, res) => {
       const instanceId = req.params.instanceId;
       const url = decodeURIComponent(req.params.url);
       
@@ -176,7 +187,7 @@ module.exports = NodeHelper.create({
     });
     
     // Get settings
-    this.expressApp.get("/api/settings/:instanceId", (req, res) => {
+    this.expressApp.get("/MMM-StylishCalendar/api/settings/:instanceId", (req, res) => {
       const instanceId = req.params.instanceId;
       const settingsPath = path.join(this.storagePath, `${instanceId}-settings.json`);
       
@@ -194,7 +205,7 @@ module.exports = NodeHelper.create({
     });
     
     // Save settings
-    this.expressApp.post("/api/settings/:instanceId", (req, res) => {
+    this.expressApp.post("/MMM-StylishCalendar/api/settings/:instanceId", (req, res) => {
       const instanceId = req.params.instanceId;
       const settings = req.body;
       
@@ -284,8 +295,12 @@ module.exports = NodeHelper.create({
     const instance = this.calendarInstances[instanceId];
     if (!instance) return;
     
+    // Log the calendars we're loading
+    console.log(`[MMM-StylishCalendar] Loading ${instance.config.calendars.length} calendars for instance ${instanceId}`);
+    
     instance.config.calendars.forEach(calendar => {
       if (!this.calendars[calendar.url]) {
+        // Create a new calendar entry
         this.calendars[calendar.url] = {
           url: calendar.url,
           type: calendar.type || "web",
@@ -297,6 +312,8 @@ module.exports = NodeHelper.create({
           events: [],
           lastFetched: null
         };
+        
+        console.log(`[MMM-StylishCalendar] Added calendar: ${calendar.name} (${calendar.url})`);
       }
     });
   },
@@ -495,11 +512,11 @@ module.exports = NodeHelper.create({
     }
     
     // Setup routes for authentication
-    this.expressApp.get("/auth/apple-calendar", (req, res) => {
+    this.expressApp.get("/MMM-StylishCalendar/auth/apple-calendar", (req, res) => {
       res.sendFile(path.join(this.path, "public", "setup.html"));
     });
     
-    this.expressApp.post("/api/apple-calendar", (req, res) => {
+    this.expressApp.post("/MMM-StylishCalendar/api/apple-calendar", (req, res) => {
       const { name, url, username, password } = req.body;
       
       if (!name || !url) {
@@ -556,7 +573,7 @@ module.exports = NodeHelper.create({
     // Start the server if not already running
     if (!this.expressAppStarted) {
       this.expressApp.listen(port, () => {
-        console.log(`[MMM-StylishCalendar] Calendar setup server running at http://localhost:${port}/auth/apple-calendar`);
+        console.log(`[MMM-StylishCalendar] Calendar setup server running at http://localhost:${port}/MMM-StylishCalendar/setup`);
         this.expressAppStarted = true;
         
         this.sendSocketNotification("APPLE_CALENDAR_AUTH_RUNNING", {
