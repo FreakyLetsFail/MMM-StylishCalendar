@@ -38,6 +38,38 @@ module.exports = NodeHelper.create({
     // Setup API endpoints
     this.setupAPIRoutes();
     
+    // Check existing calendar files
+    try {
+      if (fs.existsSync(this.storagePath)) {
+        const files = fs.readdirSync(this.storagePath);
+        const calendarFiles = files.filter(file => file.endsWith('-calendars.json'));
+        console.log(`[MMM-StylishCalendar] Found ${calendarFiles.length} calendar files in storage`);
+        
+        if (calendarFiles.length > 0) {
+          calendarFiles.forEach(file => {
+            try {
+              const fullPath = path.join(this.storagePath, file);
+              const fileStats = fs.statSync(fullPath);
+              const fileSizeMB = fileStats.size / (1024 * 1024);
+              const lastModified = new Date(fileStats.mtime).toLocaleString();
+              
+              console.log(`[MMM-StylishCalendar] - ${file}: ${fileSizeMB.toFixed(2)} MB, modified: ${lastModified}`);
+              
+              // Check file content
+              const calData = JSON.parse(fs.readFileSync(fullPath, "utf8"));
+              if (calData && Array.isArray(calData)) {
+                console.log(`[MMM-StylishCalendar]   - Contains ${calData.length} calendars`);
+              }
+            } catch (err) {
+              console.error(`[MMM-StylishCalendar] Error reading file ${file}:`, err);
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.error(`[MMM-StylishCalendar] Error scanning calendar directory:`, e);
+    }
+    
     // Log setup information
     console.log(`[MMM-StylishCalendar] Storage path: ${this.storagePath}`);
     console.log(`[MMM-StylishCalendar] Setup UI available at: /MMM-StylishCalendar/setup.html`);
@@ -249,23 +281,58 @@ module.exports = NodeHelper.create({
   },
   
   initCalendar: function(instanceId, config) {
+    console.log(`[MMM-StylishCalendar] Initializing calendar for instance ${instanceId}`);
+    
     this.calendarInstances[instanceId] = {
       config: config,
       calendars: []
     };
     
-    // Try to load calendars from storage first
+    // Try to load calendars from storage first - two-step approach
+    // 1. Direct match with instanceId
     const calendarConfigPath = path.join(this.storagePath, `${instanceId}-calendars.json`);
+    let calendarLoaded = false;
+    
     if (fs.existsSync(calendarConfigPath)) {
       try {
         const savedCalendars = JSON.parse(fs.readFileSync(calendarConfigPath, "utf8"));
         if (savedCalendars && savedCalendars.length > 0) {
           // Use saved calendars instead of config calendars
           config.calendars = savedCalendars;
-          console.log(`[MMM-StylishCalendar] Loaded ${savedCalendars.length} calendars from storage`);
+          console.log(`[MMM-StylishCalendar] Loaded ${savedCalendars.length} calendars directly from ${calendarConfigPath}`);
+          calendarLoaded = true;
         }
       } catch (error) {
         console.error(`[MMM-StylishCalendar] Error loading calendars from storage:`, error);
+      }
+    }
+    
+    // 2. If not found directly, look for any calendar file and use the first one
+    if (!calendarLoaded) {
+      try {
+        console.log(`[MMM-StylishCalendar] No direct calendar match, searching all calendars...`);
+        const files = fs.readdirSync(this.storagePath);
+        const calendarFiles = files.filter(file => file.endsWith('-calendars.json'));
+        
+        if (calendarFiles.length > 0) {
+          const firstCalendarFile = calendarFiles[0];
+          const fullPath = path.join(this.storagePath, firstCalendarFile);
+          const savedCalendars = JSON.parse(fs.readFileSync(fullPath, "utf8"));
+          
+          if (savedCalendars && savedCalendars.length > 0) {
+            config.calendars = savedCalendars;
+            console.log(`[MMM-StylishCalendar] Loaded ${savedCalendars.length} calendars from found file: ${fullPath}`);
+            
+            // Also save with the new instance ID for future use
+            fs.writeFileSync(calendarConfigPath, JSON.stringify(savedCalendars, null, 2));
+            console.log(`[MMM-StylishCalendar] Saved calendars to new instance location: ${calendarConfigPath}`);
+            calendarLoaded = true;
+          }
+        } else {
+          console.log(`[MMM-StylishCalendar] No calendar files found in ${this.storagePath}`);
+        }
+      } catch (error) {
+        console.error(`[MMM-StylishCalendar] Error searching for calendar files:`, error);
       }
     }
     
@@ -337,6 +404,21 @@ module.exports = NodeHelper.create({
     
     // Reload calendars in case they changed
     this.loadCalendars(instanceId);
+    
+    // Check if we actually have calendars to fetch
+    if (!instance.config.calendars || instance.config.calendars.length === 0) {
+      console.error(`[MMM-StylishCalendar] No calendars configured for instance ${instanceId}`);
+      
+      // Send empty events array to avoid loading indicator
+      this.sendSocketNotification("CALENDAR_EVENTS", {
+        instanceId: instanceId,
+        events: []
+      });
+      
+      return;
+    }
+    
+    console.log(`[MMM-StylishCalendar] Fetching events from ${instance.config.calendars.length} calendars`);
     
     const promises = [];
     const now = moment();
@@ -498,8 +580,19 @@ module.exports = NodeHelper.create({
   },
   
   filterEvents: function(events, config) {
+    if (!events || events.length === 0) {
+      console.log(`[MMM-StylishCalendar] No events to filter`);
+      return [];
+    }
+    
+    // Default values if config is missing
+    const maxDays = config.maximumDaysInFuture || 365;
+    const maxEntries = config.maximumEntries || 10;
+    
+    console.log(`[MMM-StylishCalendar] Filtering events: ${events.length} events, max ${maxEntries} entries, ${maxDays} days ahead`);
+    
     const now = moment();
-    const future = moment().add(config.maximumDaysInFuture || 365, "days");
+    const future = moment().add(maxDays, "days");
     
     // Filter events based on date range
     const filteredEvents = events.filter(event => {
@@ -507,8 +600,13 @@ module.exports = NodeHelper.create({
       return eventStart.isBetween(now, future, null, "[]");
     });
     
+    console.log(`[MMM-StylishCalendar] After date filtering: ${filteredEvents.length} events remain`);
+    
     // Return events limited by maximumEntries count
-    return filteredEvents.slice(0, config.maximumEntries || 10);
+    const limitedEvents = filteredEvents.slice(0, maxEntries);
+    console.log(`[MMM-StylishCalendar] After entry limit: ${limitedEvents.length} events will be shown`);
+    
+    return limitedEvents;
   },
   
   startAuthServer: function(instanceId, config) {

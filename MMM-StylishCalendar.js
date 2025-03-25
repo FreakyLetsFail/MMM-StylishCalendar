@@ -70,8 +70,10 @@ Module.register("MMM-StylishCalendar", {
     
     this.moduleVersion = "1.0.0";
     
-    // Create unique ID for this instance
-    this.instanceId = Date.now().toString(16);
+    // Create stable ID for this instance based on module position
+    const positionKey = this.data.position || "unknown";
+    this.instanceId = `mm-stylish-calendar-${positionKey.replace("_", "-")}`;
+    console.log(`[${this.name}] Starting module with instance ID: ${this.instanceId}`);
     
     // Send credentials to backend and start update cycle
     this.sendConfig();
@@ -119,9 +121,17 @@ Module.register("MMM-StylishCalendar", {
     
     if (this.events.length === 0) {
       // No events to display
-      wrapper.innerHTML = this.translate("NO_EVENTS");
-      wrapper.className = "MMM-StylishCalendar-wrapper dimmed";
-      console.log(`[${this.name}] No events to display - events array is empty`);
+      if (!this.config.calendars || this.config.calendars.length === 0) {
+        // No calendars configured
+        wrapper.innerHTML = `<div style="color:yellow">No calendars configured.<br>Visit http://localhost:8080/MMM-StylishCalendar/setup<br>to add calendars.</div>`;
+        wrapper.className = "MMM-StylishCalendar-wrapper dimmed";
+        console.log(`[${this.name}] No calendars configured`);
+      } else {
+        // Calendars configured but no events
+        wrapper.innerHTML = this.translate("NO_EVENTS");
+        wrapper.className = "MMM-StylishCalendar-wrapper dimmed";
+        console.log(`[${this.name}] No events to display - ${this.config.calendars.length} calendars but events array is empty`);
+      }
       return wrapper;
     }
     
@@ -142,12 +152,14 @@ Module.register("MMM-StylishCalendar", {
   socketNotificationReceived: function(notification, payload) {
     if (notification === "CALENDAR_EVENTS") {
       if (payload.instanceId === this.instanceId) {
+        console.log(`[${this.name}] Received ${payload.events.length} events from backend`);
         this.events = payload.events;
         this.loaded = true;
         this.updateDom();
       }
     } else if (notification === "CALENDAR_UPDATED") {
       if (payload.instanceId === this.instanceId) {
+        console.log(`[${this.name}] Calendar config updated with ${payload.calendars.length} calendars`);
         this.config.calendars = payload.calendars;
         this.sendConfig();
         this.updateCalendarEvents();
