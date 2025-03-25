@@ -68,6 +68,11 @@ Module.register("MMM-StylishCalendar", {
     this.authenticationRunning = false;
     this.firstFetch = true;
     
+    // Make sure update interval is reasonable (default 60 seconds)
+    if (!this.config.updateInterval || this.config.updateInterval < 30) {
+      this.config.updateInterval = 60;
+    }
+    
     this.moduleVersion = "1.0.0";
     
     // Create stable ID for this instance based on module position
@@ -79,9 +84,9 @@ Module.register("MMM-StylishCalendar", {
     if (this.config.calendars && this.config.calendars.length === 0) {
       console.log(`[${this.name}] No calendars in config, checking for added calendars via setup UI`);
       
-      // Try to load hardcoded calendar for instance ID if it exists
+      // Try to load hardcoded calendars for instance ID if it exists
       try {
-        // This is a temporary fix - we hard-code a known calendar
+        // This is a temporary fix - we hard-code known calendars
         this.config.calendars = [
           {
             name: "Arbeit",
@@ -90,11 +95,20 @@ Module.register("MMM-StylishCalendar", {
             color: "#ca5010",
             category: "work",
             type: "webcal"
-          }
+          },
+          // You can add more calendars here
+          // {
+          //   name: "Familie",
+          //   url: "webcal://your-other-calendar-url",
+          //   symbol: "family",
+          //   color: "#4287f5",
+          //   category: "family",
+          //   type: "webcal"
+          // }
         ];
-        console.log(`[${this.name}] Added hardcoded calendar for testing`);
+        console.log(`[${this.name}] Added ${this.config.calendars.length} hardcoded calendars for testing`);
       } catch (e) {
-        console.error(`[${this.name}] Error adding hardcoded calendar:`, e);
+        console.error(`[${this.name}] Error adding hardcoded calendars:`, e);
       }
     }
     
@@ -243,11 +257,15 @@ Module.register("MMM-StylishCalendar", {
     const self = this;
     clearInterval(this.currentIntervalId);
     
+    // Interval depends on whether the module is hidden
     const interval = this.isHidden 
       ? this.config.updateIntervalHidden 
       : this.config.updateInterval;
     
+    console.log(`[${this.name}] Scheduling updates every ${interval} seconds`);
+    
     this.currentIntervalId = setInterval(function() {
+      console.log(`[${self.name}] Performing scheduled update...`);
       self.updateCalendarEvents();
     }, interval * 1000);
   },

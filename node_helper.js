@@ -459,29 +459,27 @@ module.exports = NodeHelper.create({
     const promises = [];
     const now = moment();
     
-    // Check each calendar if it needs an update
+    // Always fetch all calendars on each update to ensure we have the most recent data
     instance.config.calendars.forEach(calendarConfig => {
       const calendar = this.calendars[calendarConfig.url];
       
       if (!calendar) return;
       
-      // If last fetch was more than 15 minutes ago or never fetched
-      if (!calendar.lastFetched || moment().diff(calendar.lastFetched, 'minutes') > 15) {
-        const promise = this.fetchCalendar(instanceId, calendar)
-          .then(events => {
-            calendar.events = events;
-            calendar.lastFetched = moment();
-            return events;
-          })
-          .catch(error => {
-            console.error(`[MMM-StylishCalendar] Error fetching calendar ${calendar.name}:`, error);
-            return [];
-          });
-        
-        promises.push(promise);
-      } else {
-        promises.push(Promise.resolve(calendar.events));
-      }
+      // Force regular updates regardless of last fetch time
+      const promise = this.fetchCalendar(instanceId, calendar)
+        .then(events => {
+          calendar.events = events;
+          calendar.lastFetched = moment();
+          console.log(`[MMM-StylishCalendar] Updated calendar ${calendar.name} with ${events.length} events`);
+          return events;
+        })
+        .catch(error => {
+          console.error(`[MMM-StylishCalendar] Error fetching calendar ${calendar.name}:`, error);
+          // Return cached events if available, otherwise empty array
+          return calendar.events || [];
+        });
+      
+      promises.push(promise);
     });
     
     // When all calendars are fetched, send events back
@@ -490,11 +488,23 @@ module.exports = NodeHelper.create({
         // Flatten events from all calendars
         let allEvents = [].concat(...results);
         
-        // Sort events by start date
-        allEvents.sort((a, b) => moment(a.startDate).valueOf() - moment(b.startDate).valueOf());
+        // Remove any duplicate events (same title, start time and end time)
+        const uniqueEvents = [];
+        const eventMap = new Map();
+        
+        allEvents.forEach(event => {
+          const key = `${event.title}_${moment(event.startDate).format('YYYY-MM-DD-HH-mm')}_${moment(event.endDate).format('YYYY-MM-DD-HH-mm')}`;
+          if (!eventMap.has(key)) {
+            eventMap.set(key, true);
+            uniqueEvents.push(event);
+          }
+        });
+        
+        // Sort events by start date (earlier events first)
+        uniqueEvents.sort((a, b) => moment(a.startDate).valueOf() - moment(b.startDate).valueOf());
         
         // Filter events based on config
-        allEvents = this.filterEvents(allEvents, config);
+        allEvents = this.filterEvents(uniqueEvents, config);
         
         console.log(`[MMM-StylishCalendar] Sending ${allEvents.length} events to instance ${instanceId}`);
         
