@@ -288,6 +288,52 @@ class CalendarBuilder {
         eventElement.classList.add("full-day-event");
       }
       
+      // Add person icon based on calendar's person attribute
+      if (event.person) {
+        const personContainer = document.createElement("div");
+        personContainer.className = "event-person";
+        
+        // Add appropriate icon based on person
+        if (event.person === "justus") {
+          const personIcon = document.createElement("i");
+          personIcon.className = "fas fa-male";
+          personContainer.appendChild(personIcon);
+        } else if (event.person === "marie") {
+          const personIcon = document.createElement("i");
+          personIcon.className = "fas fa-female";
+          personContainer.appendChild(personIcon);
+        } else if (event.person === "gemeinsam") {
+          const maleIcon = document.createElement("i");
+          maleIcon.className = "fas fa-male";
+          
+          const femaleIcon = document.createElement("i");
+          femaleIcon.className = "fas fa-female";
+          
+          personContainer.appendChild(maleIcon);
+          personContainer.appendChild(femaleIcon);
+        }
+        
+        eventElement.appendChild(personContainer);
+      }
+      
+      // Add calendar symbol/icon (but hide category text)
+      if (this.config.displaySymbol) {
+        const symbolContainer = document.createElement("div");
+        symbolContainer.className = "event-symbol";
+        
+        // Save calendar name and symbol for legend
+        event._calendarName = event.calendarName;
+        
+        // Get the calendar symbol or default
+        const symbol = event.calendarSymbol || this.config.defaultSymbol;
+        event._calendarSymbol = symbol;
+      
+        // Use built-in helper to create the icon
+        symbolContainer.appendChild(this.createIcon(symbol, event.calendarColor));
+        
+        eventElement.appendChild(symbolContainer);
+      }
+      
       // Add event time
       if (!event.fullDayEvent) {
         const eventTime = document.createElement("div");
@@ -314,49 +360,36 @@ class CalendarBuilder {
         eventElement.appendChild(eventTime);
       }
       
-      // Add calendar symbol/icon (but hide category text)
-      if (this.config.displaySymbol) {
-        const symbolContainer = document.createElement("div");
-        symbolContainer.className = "event-symbol";
-        
-        // Save calendar name and symbol for legend
-        event._calendarName = event.calendarName;
-        
-        // Get the calendar symbol or default
-        const symbol = event.calendarSymbol || this.config.defaultSymbol;
-        event._calendarSymbol = symbol;
-        
-        // Check if this is a FontAwesome icon (fa: prefix)
-        if (symbol.startsWith('fa:')) {
-          // Extract FontAwesome icon name
-          const faIcon = symbol.substring(3);
-          const icon = document.createElement('i');
-          icon.className = faIcon;
-          symbolContainer.appendChild(icon);
+    // Helper method to create icon elements based on icon type
+    createIcon: function(symbol, color) {
+      // Check if this is a FontAwesome icon (fa: prefix)
+      if (symbol.startsWith('fa:')) {
+        // Extract FontAwesome icon name
+        const faIcon = symbol.substring(3);
+        const icon = document.createElement('i');
+        icon.className = faIcon;
+        if (color) {
+          icon.style.color = color;
         }
-        // Use built-in SVG icon replacement if available
-        else if (this.config.displaySymbolIconReplacement && this.svgs[symbol]) {
-          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-          svg.setAttribute("viewBox", "0 0 24 24");
-          
-          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-          path.setAttribute("d", this.svgs[symbol]);
-          path.setAttribute("fill", "currentColor");
-          
-          svg.appendChild(path);
-          symbolContainer.appendChild(svg);
-        } else {
-          symbolContainer.textContent = symbol;
-        }
-        
-        // We don't add text categories anymore as requested
-        
-        eventElement.appendChild(symbolContainer);
+        return icon;
       }
-      
-      // Create content wrapper
-      const contentWrapper = document.createElement("div");
-      contentWrapper.className = "event-content";
+      // Use built-in SVG icon replacement if available
+      else if (this.svgs[symbol]) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", this.svgs[symbol]);
+        path.setAttribute("fill", "currentColor");
+        
+        svg.appendChild(path);
+        return svg;
+      } else {
+        // Default text fallback
+        const span = document.createElement('span');
+        span.textContent = symbol || "•";
+        return span;
+      }
       
       // Add event title
       const title = document.createElement("div");

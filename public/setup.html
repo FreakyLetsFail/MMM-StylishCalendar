@@ -11,9 +11,15 @@
       --theme-color-dark: #9a3d0c;
       --bg-color: #121212;
       --surface-color: #1e1e1e;
+      --surface-color-light: #2a2a2a;
       --text-color: #ffffff;
       --text-color-dimmed: #aaaaaa;
-      --border-radius: 8px;
+      --border-radius: 12px;
+      --input-border-radius: 8px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --transition-speed: 0.2s;
     }
     
     * {
@@ -33,10 +39,11 @@
     .container {
       max-width: 800px;
       margin: 0 auto;
-      padding: 30px;
+      padding: var(--spacing-lg);
       background-color: var(--surface-color);
       border-radius: var(--border-radius);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
     
     .header {
@@ -93,15 +100,66 @@
       width: 100%;
       padding: 12px;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: var(--border-radius);
+      border-radius: var(--input-border-radius);
       background-color: rgba(0, 0, 0, 0.2);
       color: var(--text-color);
       font-size: 1em;
+      transition: all var(--transition-speed) ease;
     }
     
     input:focus, select:focus {
       outline: none;
       border-color: var(--theme-color);
+      box-shadow: 0 0 0 2px rgba(202, 80, 16, 0.2);
+    }
+    
+    /* Person selection styles */
+    .person-options {
+      display: flex;
+      gap: var(--spacing-md);
+      flex-wrap: wrap;
+    }
+    
+    .person-option {
+      flex: 1;
+      min-width: 120px;
+    }
+    
+    .person-option input[type="radio"] {
+      display: none;
+    }
+    
+    .person-option label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-md);
+      background-color: var(--surface-color-light);
+      border-radius: var(--input-border-radius);
+      cursor: pointer;
+      transition: all var(--transition-speed) ease;
+      text-align: center;
+      border: 2px solid transparent;
+    }
+    
+    .person-option label i {
+      font-size: 1.6em;
+      margin-bottom: var(--spacing-sm);
+      color: var(--theme-color-light);
+    }
+    
+    .person-option label span {
+      font-size: 0.9em;
+    }
+    
+    .person-option input[type="radio"]:checked + label {
+      background-color: rgba(202, 80, 16, 0.2);
+      border-color: var(--theme-color);
+    }
+    
+    .person-option input[type="radio"]:checked + label i {
+      color: var(--theme-color);
     }
     
     .auth-toggle {
@@ -127,32 +185,47 @@
       background-color: var(--theme-color);
       color: white;
       border: none;
-      padding: 12px 24px;
+      padding: 14px 28px;
       font-size: 1em;
-      font-weight: 500;
-      border-radius: var(--border-radius);
+      font-weight: 600;
+      border-radius: var(--input-border-radius);
       cursor: pointer;
-      transition: background-color 0.2s ease;
+      transition: all var(--transition-speed) ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
     
     .button:hover {
       background-color: var(--theme-color-light);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
     }
     
     .button:active {
       background-color: var(--theme-color-dark);
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .button i {
+      font-size: 1.1em;
     }
     
     .form-footer {
-      margin-top: 30px;
+      margin-top: var(--spacing-lg);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     
     .help-text {
-      font-size: 0.9em;
+      font-size: 0.85em;
       color: var(--text-color-dimmed);
+      max-width: 60%;
+      line-height: 1.5;
     }
     
     .success-message, .error-message {
@@ -504,6 +577,34 @@
           <input type="color" id="calendar-color" value="#ca5010">
         </div>
         
+        <div class="form-group">
+          <label>Person</label>
+          <div class="person-options">
+            <div class="person-option">
+              <input type="radio" name="person" id="person-justus" value="justus" checked>
+              <label for="person-justus">
+                <i class="fas fa-male"></i>
+                <span>Justus</span>
+              </label>
+            </div>
+            <div class="person-option">
+              <input type="radio" name="person" id="person-marie" value="marie">
+              <label for="person-marie">
+                <i class="fas fa-female"></i>
+                <span>Marie</span>
+              </label>
+            </div>
+            <div class="person-option">
+              <input type="radio" name="person" id="person-gemeinsam" value="gemeinsam">
+              <label for="person-gemeinsam">
+                <i class="fas fa-male"></i>
+                <i class="fas fa-female"></i>
+                <span>Gemeinsam</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
         <button type="button" id="auth-toggle" class="auth-toggle">+ Add authentication (if your calendar requires it)</button>
         
         <div id="auth-fields" class="auth-fields hidden">
@@ -520,7 +621,10 @@
         
         <div class="form-footer">
           <p class="help-text">After adding a calendar, you may need to restart your MagicMirror</p>
-          <button type="submit" class="button">Add Calendar</button>
+          <button type="submit" class="button">
+            <i class="fas fa-calendar-plus"></i>
+            Add Calendar
+          </button>
         </div>
         
         <div class="success-message" id="success-message">
@@ -773,6 +877,16 @@
         const calendarSymbol = document.getElementById('calendar-symbol').value;
         const calendarColor = document.getElementById('calendar-color').value;
         
+        // Get selected person
+        const personRadios = document.getElementsByName('person');
+        let selectedPerson = 'justus'; // Default
+        for (const radio of personRadios) {
+          if (radio.checked) {
+            selectedPerson = radio.value;
+            break;
+          }
+        }
+        
         // Determine final category value
         const finalCategory = calendarCategory === 'custom' ? customCategory : calendarCategory;
         
@@ -782,7 +896,8 @@
           url: calendarUrl,
           category: finalCategory,
           symbol: calendarSymbol,
-          color: calendarColor
+          color: calendarColor,
+          person: selectedPerson
         };
         
         // Add authentication if provided
@@ -1024,9 +1139,40 @@
             <input type="color" name="edit-color" value="${calendar.color || '#ca5010'}">
           </div>
           
+          <div class="form-group">
+            <label>Person</label>
+            <div class="person-options">
+              <div class="person-option">
+                <input type="radio" name="edit-person" id="edit-person-justus-${calendar.url}" value="justus" ${calendar.person === 'justus' || !calendar.person ? 'checked' : ''}>
+                <label for="edit-person-justus-${calendar.url}">
+                  <i class="fas fa-male"></i>
+                  <span>Justus</span>
+                </label>
+              </div>
+              <div class="person-option">
+                <input type="radio" name="edit-person" id="edit-person-marie-${calendar.url}" value="marie" ${calendar.person === 'marie' ? 'checked' : ''}>
+                <label for="edit-person-marie-${calendar.url}">
+                  <i class="fas fa-female"></i>
+                  <span>Marie</span>
+                </label>
+              </div>
+              <div class="person-option">
+                <input type="radio" name="edit-person" id="edit-person-gemeinsam-${calendar.url}" value="gemeinsam" ${calendar.person === 'gemeinsam' ? 'checked' : ''}>
+                <label for="edit-person-gemeinsam-${calendar.url}">
+                  <i class="fas fa-male"></i>
+                  <i class="fas fa-female"></i>
+                  <span>Gemeinsam</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          
           <div class="form-footer">
             <button type="button" class="action-button" data-action="cancel">Cancel</button>
-            <button type="button" class="button" data-action="save">Save Changes</button>
+            <button type="button" class="button" data-action="save">
+              <i class="fas fa-save"></i>
+              Save Changes
+            </button>
           </div>
         `;
         
@@ -1040,13 +1186,15 @@
           const categorySelect = editForm.querySelector('[name="edit-category"]');
           const symbolSelect = editForm.querySelector('[name="edit-symbol"]');
           const colorInput = editForm.querySelector('[name="edit-color"]');
+          const personSelect = editForm.querySelector('[name="edit-person"]:checked');
           
           const updatedData = {
             url: calendar.url,
             name: nameInput.value,
             category: categorySelect.value,
             symbol: symbolSelect.value,
-            color: colorInput.value
+            color: colorInput.value,
+            person: personSelect ? personSelect.value : (calendar.person || 'justus')
           };
           
           // Add authentication if it exists in the original

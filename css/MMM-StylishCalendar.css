@@ -106,14 +106,16 @@
   /* Event styles */
   .calendar-event {
     display: flex;
-    gap: 12px;
-    padding: 10px;
-    border-radius: 8px;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 10px;
     background-color: rgba(0, 0, 0, 0.15);
     position: relative;
     overflow: hidden;
     border-left: 4px solid var(--event-color, var(--calendar-theme-color));
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    margin-bottom: 4px;
   }
   
   .calendar-event:hover {
@@ -128,6 +130,25 @@
     align-items: center;
   }
   
+  .event-person {
+    min-width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 4px;
+    color: var(--color-text);
+  }
+  
+  .event-person i {
+    font-size: 14px;
+    margin-right: 2px;
+  }
+  
+  .event-person i:last-child {
+    margin-right: 0;
+  }
+  
   .event-symbol {
     min-width: 24px;
     height: 24px;
@@ -135,11 +156,16 @@
     align-items: center;
     justify-content: center;
     color: var(--event-color, var(--calendar-theme-color));
+    margin-right: 8px;
   }
   
   .event-symbol svg {
     width: 18px;
     height: 18px;
+  }
+  
+  .event-symbol i {
+    font-size: 18px;
   }
   
   /* Hidden category text */
