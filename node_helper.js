@@ -305,6 +305,14 @@ module.exports = NodeHelper.create({
       } catch (error) {
         console.error(`[MMM-StylishCalendar] Error loading calendars from storage:`, error);
       }
+    } else {
+      // Create empty file if it doesn't exist
+      try {
+        fs.writeFileSync(calendarConfigPath, JSON.stringify([], null, 2));
+        console.log(`[MMM-StylishCalendar] Created empty calendar config file at ${calendarConfigPath}`);
+      } catch (error) {
+        console.error(`[MMM-StylishCalendar] Error creating calendar config file:`, error);
+      }
     }
     
     // 2. If not found directly, look for any calendar file and use the first one
@@ -401,6 +409,22 @@ module.exports = NodeHelper.create({
     }
     
     console.log(`[MMM-StylishCalendar] Getting calendar events for instance ${instanceId}`);
+    
+    // Check for any calendar files specific to this instance
+    const calendarConfigPath = path.join(this.storagePath, `${instanceId}-calendars.json`);
+    try {
+      if (fs.existsSync(calendarConfigPath)) {
+        const savedCalendars = JSON.parse(fs.readFileSync(calendarConfigPath, "utf8"));
+        if (savedCalendars && savedCalendars.length > 0) {
+          // Update config with saved calendars
+          instance.config.calendars = savedCalendars;
+          config.calendars = savedCalendars;
+          console.log(`[MMM-StylishCalendar] Found ${savedCalendars.length} calendars for instance ${instanceId}`);
+        }
+      }
+    } catch (error) {
+      console.error(`[MMM-StylishCalendar] Error loading calendars in getCalendarEvents:`, error);
+    }
     
     // Reload calendars in case they changed
     this.loadCalendars(instanceId);

@@ -75,6 +75,11 @@ Module.register("MMM-StylishCalendar", {
     this.instanceId = `mm-stylish-calendar-${positionKey.replace("_", "-")}`;
     console.log(`[${this.name}] Starting module with instance ID: ${this.instanceId}`);
     
+    // Load calendars from config if provided
+    if (this.config.calendars && this.config.calendars.length === 0) {
+      console.log(`[${this.name}] No calendars in config, checking for added calendars via setup UI`);
+    }
+    
     // Send credentials to backend and start update cycle
     this.sendConfig();
     this.updateCalendarEvents();
