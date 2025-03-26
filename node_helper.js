@@ -76,6 +76,15 @@ module.exports = NodeHelper.create({
   },
   
   setupAPIRoutes: function() {
+    // Health check endpoint
+    this.expressApp.get("/MMM-StylishCalendar/health", (req, res) => {
+      res.json({ 
+        status: "OK", 
+        module: "MMM-StylishCalendar",
+        port: "8200" 
+      });
+    });
+    
     // Setup route for the setup UI
     this.expressApp.get("/MMM-StylishCalendar/setup", (req, res) => {
       res.sendFile(path.join(this.path, "public", "setup.html"));
@@ -692,7 +701,7 @@ module.exports = NodeHelper.create({
   },
   
   startAuthServer: function(instanceId, config) {
-    const port = config.calendarServerPort;
+    const port = config.calendarServerPort || 8300; // Default to 8300 to avoid conflict with Todoist
     
     // Check if the port is already in use
     if (this.authServers[instanceId]) {
@@ -767,15 +776,35 @@ module.exports = NodeHelper.create({
     
     // Start the server if not already running
     if (!this.expressAppStarted) {
-      this.expressApp.listen(port, () => {
-        console.log(`[MMM-StylishCalendar] Calendar setup server running at http://localhost:${port}/MMM-StylishCalendar/setup`);
-        this.expressAppStarted = true;
-        
-        this.sendSocketNotification("APPLE_CALENDAR_AUTH_RUNNING", {
-          instanceId: instanceId,
-          port: port
-        });
-      });
+      // Check if the port is available
+      const net = require('net');
+      const tester = net.createServer()
+        .once('error', (err) => {
+          if (err.code === 'EADDRINUSE') {
+            console.log(`[MMM-StylishCalendar] Port ${port} already in use, using existing express app only`);
+            this.expressAppStarted = true;
+            this.sendSocketNotification("APPLE_CALENDAR_AUTH_RUNNING", {
+              instanceId: instanceId,
+              port: port
+            });
+          } else {
+            console.error(`[MMM-StylishCalendar] Error checking port:`, err);
+          }
+        })
+        .once('listening', () => {
+          tester.close(() => {
+            this.expressApp.listen(port, () => {
+              console.log(`[MMM-StylishCalendar] Calendar setup server running at http://localhost:${port}/MMM-StylishCalendar/setup`);
+              this.expressAppStarted = true;
+              
+              this.sendSocketNotification("APPLE_CALENDAR_AUTH_RUNNING", {
+                instanceId: instanceId,
+                port: port
+              });
+            });
+          });
+        })
+        .listen(port);
     } else {
       // Just notify that the auth server is available
       this.sendSocketNotification("APPLE_CALENDAR_AUTH_RUNNING", {
